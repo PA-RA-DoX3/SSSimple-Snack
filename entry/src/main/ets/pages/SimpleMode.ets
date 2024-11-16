@@ -5,15 +5,14 @@ import { Snack } from '../common/utils/Snack';
 
 @Entry
 @Component
-struct SimpleMode {
+export  struct main_game {
   @State board_size: number = 0;
   //棋盘
   @State simple_g: Game = new Game();
-  // facing 0→ 1↑ 2← 3↓
 
   @State length_score: number = 1;
   @State now_playing: boolean = false;
-  @State player: Snack = new Snack()
+  @State player: Snack = new Snack(1,0)
   @State dead: boolean = false;
   @State hd_mode: boolean = false;
   @State screen_width: number = 0;
@@ -307,32 +306,35 @@ struct SimpleMode {
     //执行棋盘的自动检测功能
     //0游戏失败   1蛇正常行走  2蛇吃到苹果
     //refresh里更新棋盘，外边更新蛇
-    switch (this.simple_g.refresh(this.player)) {
-      case 0: {
-        //不关心怎么死的
-        this.dead = true
-        this.now_playing = false
-        break;
-      }
-      case 1: {
-        this.player.body.push(this.player.new_head)
-        this.player.body.shift()
-        break;
-      }
-      case 2: {
-        this.player.body.push(this.player.new_head)
-        this.length_score++
-        break;
-      }
-      default: {
+    let snack_arr :Snack[] = [this.player]
 
-      }
-    }
+    this.simple_g.refresh(10,snack_arr).forEach((key_num,index)=>{
+      switch (key_num % 10) {
+        case 0: {
+          //不关心怎么死的
+          this.dead = true
+          this.now_playing = false
+          break;
+        }
+        case 1: {
+          this.player.body.push(this.player.new_head)
+          this.player.body.shift()
+          break;
+        }
+        case 2: {
+          this.player.body.push(this.player.new_head)
+          this.length_score++
+          break;
+        }
+        default: {
 
+        }
+      }
+    })
     return true
   }
 
-  reset(isFirst = false) {
+  reset(is_first = false) {
     //重置棋盘
     this.simple_g.game = []
     for (let index = 0; index < 100; index++) {
@@ -342,15 +344,13 @@ struct SimpleMode {
     this.length_score = 0
     this.dead = false
     //重置玩家蛇属性
-    this.player.body = []
-    this.player.facing = 0
-    this.player.add_body(0)
+    this.player = new Snack(1 , 0)
     //生成一个临时apple将其加入到apple数组中
-    if (!isFirst) {
+    if (!is_first) {
       //将棋盘中随机一格置为苹果
-      this.simple_g.upgrade(Math.floor(Math.random() * 101), 11)
-      //手动将第一格位置设置为蛇
-      this.simple_g.upgrade(0, 1)
+      this.simple_g.new_apple()
+      //展示蛇
+      this.simple_g.new_snack(this.player)
     }
 
   }

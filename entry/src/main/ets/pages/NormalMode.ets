@@ -1,72 +1,467 @@
 import {Block} from '../common/utils/Block'
 import {Apples} from '../common/utils/Apples'
 import { Snack } from '../common/utils/Snack';
-import App from '@system.app';
+import { Game } from '../common/utils/Game';
+import { AISnack } from '../common/utils/AISnack';
 
 @Entry
 @Component
 struct NormalMode {
   @State board_size: number = 0;
-  @State game: number[] = [];
+  @State normal_g : Game = new Game()
   @State now_playing: boolean = false;
+  @State player : Snack = new Snack(3,0)
   @State screen_width: number = 0;
   @State screen_height: number = 0;
+  @State length_score: number = 0
+  @State dead :boolean = false
   @State total_apples:Apples[]=[]
 
+  snack1 :AISnack = new AISnack(3)
+  snack2 :AISnack = new AISnack(3)
+  snack3 :AISnack = new AISnack(3)
+  //ai蛇是否已经生成
+  exist_snack1:boolean = false
+  exist_snack2:boolean = false
+  exist_snack3:boolean = false
+
+
   aboutToAppear(): void {
-    this.reset()
+    this.reset(true)
 
     setInterval(() => {
       if (this.now_playing) {
-        // this.refresh_game()
+        this.refresh_game()
+        this.ai_snack_create()
+        if(this.exist_snack1){
+          this.snack1.get_facing(0)
+        }
       }
-    }, 500); // Refresh Game
+    },400); // Refresh Game
+    setInterval(() => {
+      if (this.now_playing) {
+        this.speed_up(this.player)
+      }
+    },400); // Refresh Game
   }
 
   build() {
     RelativeContainer() {
-      Column({space:10}){
+      Column({space:20}){
         Grid() {
-          ForEach(this.game, (item: boolean, index) => {
+          ForEach(this.normal_g.game, (item: number, index) => {
             GridItem() {
               Row() {
                 // Text(index.toString()) {
                 // }
-                // Block({
-                //   board_size: this.board_size,
-                //   status: item,
-                //   index: index,
-                //   // apple: index == this.apple
-                // })
+                Block({
+                  board_size: this.board_size,
+                  status: item,
+                  index: index,
+                  // apple: index == this.apple
+                })
               }
               .width("100%")
               .height("100%")
             }
-            .margin(this.board_size * 2)
+            .margin(this.board_size )
           })
         }
         // Grids
         .height(this.board_size * 340)
         .columnsTemplate("1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr")
         .rowsTemplate("1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr")
+
+
+
+        Row(){
+          Text(this.length_score.toString())
+            .opacity(this.board_size == 0 ? 0 : 1)
+            .animation({ duration: 500, delay: 400, curve: Curve.ExtremeDeceleration })
+
+            .fontSize(this.board_size * 50)
+            .fontWeight(FontWeight.Bold)
+            .layoutWeight(1)
+            .textAlign(TextAlign.Start)
+            .fontColor($r('app.color.accent'))
+
+          Text(this.get_facing_string())
+            .opacity(this.board_size == 0 ? 0 : 1)
+            .animation({ duration: 500, delay: 450, curve: Curve.ExtremeDeceleration })
+
+            .fontSize(this.board_size * 50)
+            .fontWeight(FontWeight.Bold)
+            .fontColor($r('app.color.accent'))
+        }
       }
+      .width(this.board_size * 340)
+      .alignRules({
+        top: { anchor: '__container__', align: VerticalAlign.Top },
+        middle: { anchor: '__container__', align: HorizontalAlign.Center }
+      })
+
+      Row() {
+        Grid() {
+          GridItem()
+            .margin(this.board_size * 2)
+          GridItem() {
+            Button() {
+              Text("↑")
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              this.player.facing = 1
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.5 })
+          }
+
+          GridItem()
+            .margin(this.board_size * 2)
+
+          GridItem() {
+            Button() {
+              Text("←")
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              this.player.facing = 2
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.5 })
+          }
+
+          GridItem() {
+            Button() {
+              Text("　")
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              // Speed Up?
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.5 })
+          }
+
+          GridItem() {
+            Button() {
+              Text("→")
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              this.player.facing = 0
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.5 })
+          }
+
+          GridItem()
+            .margin(this.board_size * 2)
+          GridItem() {
+            Button() {
+              Text("↓")
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              this.player.facing = 3
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.5 })
+          }
+
+          GridItem()
+            .margin(this.board_size * 2)
+        }
+        // Gamepad
+        .opacity(this.board_size == 0 ? 0 : 1)
+        .animation({ duration: 500, delay: 500, curve: Curve.ExtremeDeceleration })
+
+        .width(this.board_size * 150)
+        .height(this.board_size * 150)
+        .columnsTemplate("1fr 1fr 1fr")
+        .rowsTemplate("1fr 1fr 1fr")
+
+        Blank()
+
+        Grid() {
+          GridItem()
+            .margin(this.board_size * 2)
+          GridItem() {
+            Button() {
+              Text(this.get_start_status())
+                .textAlign(TextAlign.Center)
+                .fontWeight(FontWeight.Bold)
+                .fontSize(this.board_size * 30)
+                .fontColor($r('app.color.start_window_background'))
+                .backgroundColor($r('app.color.accent'))
+                .borderRadius(this.board_size * 4)
+                .width("100%")
+                .height("100%")
+            }
+            .margin(this.board_size * 2)
+            .backgroundColor("transparent")
+            .type(ButtonType.Normal)
+            .onClick(() => {
+              this.reset()
+              this.now_playing = true
+            })
+            .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.7 })
+          }
+          .margin(this.board_size * 2)
+
+          GridItem()
+            .margin(this.board_size * 2)
+
+        }
+        // Control
+        .opacity(this.board_size == 0 ? 0 : 1)
+        .animation({ duration: 500, delay: 550, curve: Curve.ExtremeDeceleration })
+
+        .width(this.board_size * 150)
+        .height(this.board_size * 150)
+        .rowsTemplate("1fr 1fr 1fr")
+
+      }
+      // Buttons
+      .width(this.board_size * 340)
+      .alignRules({
+        bottom: { anchor: '__container__', align: VerticalAlign.Bottom },
+        middle: { anchor: '__container__', align: HorizontalAlign.Center }
+      })
+
+
     }
+    .backgroundColor($r("app.color.start_window_background"))
     .height('100%')
     .width('100%')
+    .onAreaChange((o,n) => {
+      this.get_board_size(n.width as number, n.height as number)
+    })
+    .padding(45)
+
   }
 
-  reset() {
-    //新建玩家蛇
-    let player:Snack=new Snack()
+  reset(is_first = false) {
     //重置棋盘
-    this.game = []
+    this.normal_g.game = []
     for (let index = 0; index < 400; index++) {
-      this.game.push(0)//将所有格子重置为空
+      this.normal_g.game.push(0) //将所有格子重置为空
     }
+    //重置AI蛇状态
+    this.exist_snack1 = false
+    this.exist_snack2 = false
+    this.exist_snack3 = false
+    //重置分数 和 死亡状态
+    this.length_score = 0
+    this.dead = false
     //重置玩家蛇属性
-    player.facing = 0
-    player.add_body(-1)
-    let apple = new Apples( 1, Math.floor(Math.random()*400))
-    this.total_apples.push(apple)
+    this.player = new Snack(3,0,10,0)
+    //将新的蛇置于棋盘中
+    //在棋盘中生成一个apple
+    if (!is_first) {
+      //将棋盘中随机一格置为苹果
+      this.normal_g.new_apple()
+      this.normal_g.new_snack(this.player)
+    }
+
+  }
+
+  get_facing_string() {
+    if (this.player.facing == 0) {
+      return "→"
+    }
+    if (this.player.facing == 1) {
+      return "↑"
+    }
+    if (this.player.facing == 2) {
+      return "←"
+    }
+    if (this.player.facing == 3) {
+      return "↓"
+    }
+    return "?"
+  }
+
+
+  get_board_size(width: number, height: number) {
+    let height_zoom = height / 650
+    let width_zoom = width / 400
+
+    this.screen_width = width
+    this.screen_height = height
+
+    let board_size = Math.min(height_zoom, width_zoom)
+    this.board_size = board_size
+
+    return board_size
+  }
+
+  get_start_status() {
+    if (this.now_playing) {
+      return $r('app.string.Button_Text_Playing')
+    } else {
+      if (this.dead == true) {
+        return $r('app.string.Button_Text_1')
+      }
+      return $r('app.string.Button_Text_0')
+    }
+  }
+
+  //刷新
+  refresh_game() {
+    //首先移动玩家的蛇
+    let snack_arr :Snack[] = [this.player]
+    this.player.move(20)
+    if(this.exist_snack1){
+      this.snack1.move(20)
+      snack_arr.push(this.snack1)
+    }
+    if(this.exist_snack2){
+      // snack2.move()
+      // snack_arr.push(snack2)
+    }
+    if(this.exist_snack3){
+      // snack3.move()
+      // snack_arr.push(snack3)
+    }
+    //执行棋盘的自动检测功能
+    //0游戏失败   1蛇正常行走  2蛇吃到苹果
+    //refresh里更新棋盘，外边更新蛇
+    this.normal_g.refresh(20,snack_arr).forEach((key_num,index)=>{
+      switch (key_num % 10) {
+        case 0: {
+          if(snack_arr[index].index == 10 ){
+            this.dead = true
+            this.now_playing = false
+          }else{
+            this.exist_snack1 =false
+            //先删除
+            this.normal_g.delete_snack(snack_arr[index])
+            //然后清空身体
+            this.snack1.body = []
+          }
+          break;
+        }
+        case 1: {
+          snack_arr[index].body.push(snack_arr[index].new_head)
+          snack_arr[index].body.shift()
+          break;
+        }
+        case 2: {
+          snack_arr[index].body.push(snack_arr[index].new_head)
+          if(index == 0){
+            this.length_score++
+          }
+
+          break;
+        }
+        default: {
+
+        }
+      }
+    })
+    return true
+  }
+  //某条蛇加速
+  speed_up(snack:Snack) {
+    //首先移动玩家的蛇
+    let snack_arr :Snack[] = [snack]
+    snack.move(20)
+    //执行棋盘的自动检测功能
+    //0游戏失败   1蛇正常行走  2蛇吃到苹果
+    //refresh里更新棋盘，外边更新蛇
+    this.normal_g.refresh(20,snack_arr).forEach((key_num,index)=>{
+      switch (key_num % 10) {
+        case 0: {
+          if(snack_arr[index].index == 10 ){
+            this.dead = true
+            this.now_playing = false
+          }else{
+            this.exist_snack1 =false
+            //先删除
+            this.normal_g.delete_snack(snack_arr[index])
+            //然后清空身体
+            this.snack1.body = []
+          }
+          break;
+        }
+        case 1: {
+          snack_arr[index].body.push(snack_arr[index].new_head)
+          snack_arr[index].body.shift()
+          break;
+        }
+        case 2: {
+          snack_arr[index].body.push(snack_arr[index].new_head)
+          if(index == 0){
+            this.length_score++
+          }
+
+          break;
+        }
+        default: {
+
+        }
+      }
+    })
+    return true
+  }
+
+  ai_snack_create(){
+    //如果场上还没有3条蛇
+    if(!this.exist_snack1) {
+      //百分之40概率生成
+      if(Math.floor(Math.random()*10)>7){
+        let tail = this.normal_g.find_space(3)
+        this.snack1 = new AISnack(6,undefined,20,tail)
+        this.normal_g.new_snack(this.snack1)
+        this.exist_snack1 = true
+      }
+
+    }
   }
 }
