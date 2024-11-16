@@ -18,11 +18,7 @@
     },
     {
       "name": "Button_Text_1",
-      "value": "Hit Wall"
-    },
-    {
-      "name": "Button_Text_2",
-      "value": "Hit Self"
+      "value": "DIED"
     },
     {
       "name": "Button_Text_Playing",

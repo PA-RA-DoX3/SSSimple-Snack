@@ -14,7 +14,7 @@ struct SimpleMode {
   @State length_score: number = 1;
   @State now_playing: boolean = false;
   @State player: Snack = new Snack()
-  @State dead: number = 0;
+  @State dead: boolean = false;
   @State hd_mode: boolean = false;
   @State screen_width: number = 0;
   @State screen_height: number = 0;
@@ -293,18 +293,14 @@ struct SimpleMode {
     if (this.now_playing) {
       return $r('app.string.Button_Text_Playing')
     } else {
-      if (this.dead == 1) {
+      if (this.dead == true) {
         return $r('app.string.Button_Text_1')
-      }
-      if (this.dead == 2) {
-        return $r('app.string.Button_Text_2')
       }
       return $r('app.string.Button_Text_0')
     }
   }
 
   refresh_game() {
-
     //首先移动玩家的蛇
     this.player.move()
 
@@ -314,7 +310,7 @@ struct SimpleMode {
     switch (this.simple_g.refresh(this.player)) {
       case 0: {
         //不关心怎么死的
-        this.dead = 1
+        this.dead = true
         this.now_playing = false
         break;
       }
@@ -325,6 +321,7 @@ struct SimpleMode {
       }
       case 2: {
         this.player.body.push(this.player.new_head)
+        this.length_score++
         break;
       }
       default: {
@@ -344,12 +341,13 @@ struct SimpleMode {
     //重置玩家蛇属性
     this.player.body = []
     this.player.facing = 0
-    this.player.add_body(-1)
+    this.player.add_body(0)
     //生成一个临时apple将其加入到apple数组中
     if (!isFirst) {
       //将棋盘中随机一格置为苹果
       this.simple_g.upgrade(Math.floor(Math.random() * 101), 11)
-      // this.simple_g.game[55] = 11
+      //手动将第一格位置设置为蛇
+      this.simple_g.upgrade(0, 1)
     }
 
   }
