@@ -17,6 +17,9 @@ struct NormalMode {
   @State dead :boolean = false
   @State total_apples:Apples[]=[]
 
+  //主时间
+  current_time :number = 0
+  //AI蛇
   snack1 :AISnack = new AISnack(3)
   snack2 :AISnack = new AISnack(3)
   snack3 :AISnack = new AISnack(3)
@@ -29,20 +32,34 @@ struct NormalMode {
   aboutToAppear(): void {
     this.reset(true)
 
-    setInterval(() => {
-      if (this.now_playing) {
-        this.refresh_game()
+    let main_clock = setInterval(() => {
+      if(this.now_playing){
+        //计时器增加
+        if(this.current_time < 400 ){
+          this.current_time += 100
+        }else {
+          this.current_time = 100
+        }
+        //刷新AI蛇
         this.ai_snack_create()
+
         if(this.exist_snack1){
-          this.snack1.get_facing(0)
+
+          if((this.current_time % this.snack1.refresh_time) == 0){
+            this.snack1.get_facing()
+            this.refresh_snack(this.snack1)
+          }
+        }
+
+        //玩家刷新
+        if((this.current_time % this.player.refresh_time) == 0){
+          this.refresh_snack(this.player)
         }
       }
-    },400); // Refresh Game
-    setInterval(() => {
-      if (this.now_playing) {
-        this.speed_up(this.player)
-      }
-    },400); // Refresh Game
+
+
+
+    },100); // Refresh Game
   }
 
   build() {
@@ -233,7 +250,7 @@ struct NormalMode {
             .margin(this.board_size * 2)
           GridItem() {
             Button() {
-              Text(this.get_start_status())
+              Text(this.get_button_text())
                 .textAlign(TextAlign.Center)
                 .fontWeight(FontWeight.Bold)
                 .fontSize(this.board_size * 30)
@@ -247,8 +264,7 @@ struct NormalMode {
             .backgroundColor("transparent")
             .type(ButtonType.Normal)
             .onClick(() => {
-              this.reset()
-              this.now_playing = true
+              this.key_button()
             })
             .clickEffect({ level: ClickEffectLevel.LIGHT, scale: 0.7 })
           }
@@ -341,14 +357,14 @@ struct NormalMode {
     return board_size
   }
 
-  get_start_status() {
+  get_button_text() {
     if (this.now_playing) {
-      return $r('app.string.Button_Text_Playing')
+      return $r('app.string.button_text_speedup')
     } else {
       if (this.dead == true) {
-        return $r('app.string.Button_Text_1')
+        return $r('app.string.button_text_died')
       }
-      return $r('app.string.Button_Text_0')
+      return $r('app.string.button_text_start')
     }
   }
 
@@ -394,7 +410,7 @@ struct NormalMode {
         }
         case 2: {
           snack_arr[index].body.push(snack_arr[index].new_head)
-          if(index == 0){
+          if(snack_arr[index].index == 10 ){
             this.length_score++
           }
 
@@ -408,13 +424,12 @@ struct NormalMode {
     return true
   }
   //某条蛇加速
-  speed_up(snack:Snack) {
+  refresh_snack(snack:Snack) {
     //首先移动玩家的蛇
     let snack_arr :Snack[] = [snack]
     snack.move(20)
     //执行棋盘的自动检测功能
     //0游戏失败   1蛇正常行走  2蛇吃到苹果
-    //refresh里更新棋盘，外边更新蛇
     this.normal_g.refresh(20,snack_arr).forEach((key_num,index)=>{
       switch (key_num % 10) {
         case 0: {
@@ -437,7 +452,7 @@ struct NormalMode {
         }
         case 2: {
           snack_arr[index].body.push(snack_arr[index].new_head)
-          if(index == 0){
+          if(snack_arr[index].index == 10 ){
             this.length_score++
           }
 
@@ -452,11 +467,10 @@ struct NormalMode {
   }
 
   ai_snack_create(){
-    //如果场上还没有3条蛇
     if(!this.exist_snack1) {
       //百分之40概率生成
       if(Math.floor(Math.random()*10)>7){
-        let tail = this.normal_g.find_space(3)
+        let tail = this.normal_g.find_space(6)
         this.snack1 = new AISnack(6,undefined,20,tail)
         this.normal_g.new_snack(this.snack1)
         this.exist_snack1 = true
@@ -464,4 +478,21 @@ struct NormalMode {
 
     }
   }
+  //蛇加速
+  speed_up(snack :Snack){
+    snack.refresh_time /= 2
+    let speed_up_interval = setInterval(()=>{
+      snack.refresh_time *= 2
+      clearInterval(speed_up_interval)
+    }, 5000)
+  }
+  key_button(){
+    if(this.now_playing == false){
+      this.reset()
+      this.now_playing = true
+    }else {
+      this.speed_up(this.player)
+    }
+  }
+
 }

@@ -13,16 +13,16 @@
       "value": "Retro Snake"
     },
     {
-      "name": "Button_Text_0",
+      "name": "button_text_start",
       "value": "START"
     },
     {
-      "name": "Button_Text_1",
+      "name": "button_text_died",
       "value": "DIED"
     },
     {
-      "name": "Button_Text_Playing",
-      "value": "Started"
+      "name": "button_text_speedup",
+      "value": "Speed Up"
     }
   ]
 }

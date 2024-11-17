@@ -17,13 +17,13 @@ export struct  Block {
         return $r("app.color.apple_normal")
       }
       case 11 :{
-        return $r("app.color.accent")
+        return $r("app.color.player")
       }
       case 21:{
-        return $r("app.color.accent")
+        return $r("app.color.AI_light_blue")
       }
       default :{
-        return $r("app.color.apple_normal")
+        return $r("app.color.deep_background")
       }
     }
   }

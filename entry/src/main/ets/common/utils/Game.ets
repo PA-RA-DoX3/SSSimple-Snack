@@ -19,7 +19,7 @@ export class Game {
     //定义一个返回的数组  初始化为空
     let key_num :number[] = []
     snack_arr.forEach((snack,index)=>{
-      if(this.detect_hit_wall(snack,game_size)||this.detect_hit_self(snack)){
+      if(Game.detect_hit_wall(snack.new_head,snack.facing,game_size)||Game.detect_hit_self(snack)){
         //如果有蛇死亡了 ，则将其编号加入数组
         key_num.push(snack.index)
       }else if(this.detect_eat_apple(snack)){
@@ -47,24 +47,24 @@ export class Game {
 
 
   //判断是否撞墙
-  detect_hit_wall(snack:Snack ,size = 10) {
-    if (snack.facing == 0) {
-      if (snack.new_head % size == 0 ) {
+  static detect_hit_wall(new_head :number ,facing :number,size = 10) :boolean{
+    if (facing == 0) {
+      if (new_head % size == 0 ) {
         return true
       }
     } // Right
-    if (snack.facing == 1) {
-      if (snack.new_head < 0) {
+    if (facing == 1) {
+      if (new_head < 0) {
         return true
       }
     } // Up
-    if (snack.facing == 2) {
-      if (snack.new_head % size == size - 1 || snack.new_head < 0) {
+    if (facing == 2) {
+      if (new_head % size == size - 1 || new_head < 0) {
         return true
       }
     } // Left
-    if (snack.facing == 3) {
-      if (snack.new_head > size*size-1) {
+    if (facing == 3) {
+      if (new_head > size*size-1) {
         return true
       }
     } // Down
@@ -72,7 +72,7 @@ export class Game {
   }
 
   //判断是否撞自己
-  detect_hit_self(snack:Snack) {
+  static detect_hit_self(snack:Snack) {
     if (snack.body.includes(snack.new_head)) {
       return true
     }
@@ -80,7 +80,7 @@ export class Game {
   }
 
   //判断是否吃到apple
-  detect_eat_apple(snack:Snack) {
+   detect_eat_apple(snack:Snack) {
     if (this.game[snack.new_head] == 1) {
 
       return true
@@ -118,7 +118,7 @@ export class Game {
     do{
       //随机选择一个可能合法的位置
       let x = Math.floor(Math.random()*game_size)
-      let y = Math.floor(Math.random() * (game_size - a))
+      let y = Math.floor(Math.random() * (game_size - a - 1))
       index = x*20+y
       //验证
       for(let i = index ; i < index+a ; i++){

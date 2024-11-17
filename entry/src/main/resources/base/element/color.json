@@ -17,6 +17,14 @@
       "value": "#ff813939"
     },
     {
+      "name": "player",
+      "value": "#334C42"
+    },
+    {
+      "name": "AI_light_blue",
+      "value": "#90C36E"
+    },
+    {
       "name": "accent",
       "value": "#334C42"
     }

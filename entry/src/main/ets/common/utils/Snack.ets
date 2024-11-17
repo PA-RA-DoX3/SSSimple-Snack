@@ -4,6 +4,8 @@ export class Snack {
   new_head :number = 0
   //默认编号为11,也就是玩家
   index : number = 10
+  //刷新时间
+  refresh_time :number = 400
   //长度，朝向 ，所属蛇的标签，尾巴的位置
   constructor(length:number , facing? :number ,index = 10,tail = 0) {
     for(let i = 0 ;i <length ; i++){
@@ -37,46 +39,33 @@ export class Snack {
 
   //蛇移动  返回是否移动成功
   //只更新蛇头
-  move(size = 10) :number{
-    if(size == 10){
-      if (this.facing == 0) {
-        this.new_head = this.get_head()+1
-      }
-      //上
-      if (this.facing == 1) {
-        this.new_head = this.get_head()-10
-      }
-      //左
-      if (this.facing == 2) {
-        this.new_head = this.get_head()-1
-      }
-      //下
-      if (this.facing == 3) {
-        this.new_head = this.get_head()+10
-      }
+  move(size = 10 , facing?:number) {
+    let f :number
+    if(facing == undefined){
+      f = this.facing
+    }else {
+      f = facing
     }
-    else if(size == 20){
-      if (this.facing == 0) {
-        this.new_head = this.get_head()+1
-      }
-      //上
-      if (this.facing == 1) {
-        this.new_head = this.get_head()-20
-      }
-      //左
-      if (this.facing == 2) {
-        this.new_head = this.get_head()-1
-      }
-      //下
-      if (this.facing == 3) {
-        this.new_head = this.get_head()+20
-      }
+    if(f == 0){
+      this.new_head = this.get_head() + 1
     }
-
-
-    //错误
-    return -1
+    if(f == 1){
+      this.new_head = this.get_head() - size
+    }
+    if(f == 2){
+      this.new_head = this.get_head() - 1
+    }
+    if(f == 3){
+      this.new_head = this.get_head() + size
+    }
   }
 
+
+   detect_hit_self() {
+    if (this.body.includes(this.new_head)) {
+      return true
+    }
+    return false
+  }
 
 }

@@ -290,12 +290,12 @@ export  struct main_game {
 
   get_start_status() {
     if (this.now_playing) {
-      return $r('app.string.Button_Text_Playing')
+      return $r('app.string.button_text_speedup')
     } else {
       if (this.dead == true) {
-        return $r('app.string.Button_Text_1')
+        return $r('app.string.button_text_died')
       }
-      return $r('app.string.Button_Text_0')
+      return $r('app.string.button_text_start')
     }
   }
 
