@@ -22,12 +22,9 @@ struct NormalMode {
   //AI蛇
   snack1 :AISnack = new AISnack(3)
   snack2 :AISnack = new AISnack(3)
-  snack3 :AISnack = new AISnack(3)
   //ai蛇是否已经生成
   exist_snack1:boolean = false
   exist_snack2:boolean = false
-  exist_snack3:boolean = false
-
 
   aboutToAppear(): void {
     this.reset(true)
@@ -41,13 +38,22 @@ struct NormalMode {
           this.current_time = 100
         }
         //刷新AI蛇
-        this.ai_snack_create()
+        if(this.current_time % 400 == 0){
+          this.ai_snack_create()
+        }
+
 
         if(this.exist_snack1){
-
           if((this.current_time % this.snack1.refresh_time) == 0){
             this.snack1.get_facing()
             this.refresh_snack(this.snack1)
+          }
+        }
+
+        if(this.exist_snack2){
+          if((this.current_time % this.snack2.refresh_time) == 0){
+            this.snack2.get_facing()
+            this.refresh_snack(this.snack2)
           }
         }
 
@@ -299,9 +305,44 @@ struct NormalMode {
       this.get_board_size(n.width as number, n.height as number)
     })
     .padding(45)
+    //手势识别方向
+    .gesture(
+      PanGesture({direction : PanDirection.Right })
+        .onActionEnd(()=>{
+          this.set_player_facing(0)
+        })
+    )
+    .gesture(
+      PanGesture({direction : PanDirection.Up })
+        .onActionEnd(()=>{
+          this.set_player_facing(1)
+        })
+    )
+    .gesture(
+      PanGesture({direction : PanDirection.Left })
+        .onActionEnd(()=>{
+          this.set_player_facing(2)
+        })
+    )
+    .gesture(
+      PanGesture({direction : PanDirection.Down })
+        .onActionEnd(()=>{
+          this.set_player_facing(3)
+        })
+    )
+    .gesture(
+      TapGesture({count:2})
+        .onAction(()=>{
+          this.key_button()
+        })
+    )
 
   }
 
+  set_player_facing(n :number) {
+    this.player.facing = n
+  }
+  //重置棋盘
   reset(is_first = false) {
     //重置棋盘
     this.normal_g.game = []
@@ -311,7 +352,6 @@ struct NormalMode {
     //重置AI蛇状态
     this.exist_snack1 = false
     this.exist_snack2 = false
-    this.exist_snack3 = false
     //重置分数 和 死亡状态
     this.length_score = 0
     this.dead = false
@@ -320,13 +360,13 @@ struct NormalMode {
     //将新的蛇置于棋盘中
     //在棋盘中生成一个apple
     if (!is_first) {
-      //将棋盘中随机一格置为苹果
-      this.normal_g.new_apple()
+      //将棋盘中随机两格置为苹果
+      this.normal_g.new_apple(2)
       this.normal_g.new_snack(this.player)
     }
 
   }
-
+  //取得玩家方向
   get_facing_string() {
     if (this.player.facing == 0) {
       return "→"
@@ -342,8 +382,7 @@ struct NormalMode {
     }
     return "?"
   }
-
-
+  //获得棋盘应该有的宽高
   get_board_size(width: number, height: number) {
     let height_zoom = height / 650
     let width_zoom = width / 400
@@ -356,7 +395,7 @@ struct NormalMode {
 
     return board_size
   }
-
+  //获得功能按键文字
   get_button_text() {
     if (this.now_playing) {
       return $r('app.string.button_text_speedup')
@@ -367,8 +406,7 @@ struct NormalMode {
       return $r('app.string.button_text_start')
     }
   }
-
-  //刷新
+  //刷新游戏（弃用）
   refresh_game() {
     //首先移动玩家的蛇
     let snack_arr :Snack[] = [this.player]
@@ -380,10 +418,6 @@ struct NormalMode {
     if(this.exist_snack2){
       // snack2.move()
       // snack_arr.push(snack2)
-    }
-    if(this.exist_snack3){
-      // snack3.move()
-      // snack_arr.push(snack3)
     }
     //执行棋盘的自动检测功能
     //0游戏失败   1蛇正常行走  2蛇吃到苹果
@@ -437,6 +471,7 @@ struct NormalMode {
             this.dead = true
             this.now_playing = false
           }else{
+
             this.exist_snack1 =false
             //先删除
             this.normal_g.delete_snack(snack_arr[index])
@@ -465,17 +500,26 @@ struct NormalMode {
     })
     return true
   }
-
+  //判断是否生成AI蛇
   ai_snack_create(){
     if(!this.exist_snack1) {
       //百分之40概率生成
       if(Math.floor(Math.random()*10)>7){
         let tail = this.normal_g.find_space(6)
-        this.snack1 = new AISnack(6,undefined,20,tail)
+        this.snack1 = new AISnack(6,undefined,20,tail,1)
         this.normal_g.new_snack(this.snack1)
         this.exist_snack1 = true
       }
 
+    }
+    if(!this.exist_snack2) {
+      //百分之40概率生成
+      if(Math.floor(Math.random()*10)>7){
+        let tail = this.normal_g.find_space(6)
+        this.snack2 = new AISnack(6,undefined,20,tail,2)
+        this.normal_g.new_snack(this.snack2)
+        this.exist_snack2 = true
+      }
     }
   }
   //蛇加速
@@ -486,6 +530,7 @@ struct NormalMode {
       clearInterval(speed_up_interval)
     }, 5000)
   }
+  //功能键函数
   key_button(){
     if(this.now_playing == false){
       this.reset()

@@ -19,7 +19,7 @@ export class Game {
     //定义一个返回的数组  初始化为空
     let key_num :number[] = []
     snack_arr.forEach((snack,index)=>{
-      if(Game.detect_hit_wall(snack.new_head,snack.facing,game_size)||Game.detect_hit_self(snack)){
+      if(Game.detect_hit_wall(snack.new_head,snack.facing,game_size)||this.is_hit_something(snack)){
         //如果有蛇死亡了 ，则将其编号加入数组
         key_num.push(snack.index)
       }else if(this.detect_eat_apple(snack)){
@@ -88,13 +88,16 @@ export class Game {
     return false
   }
 
-  //创建苹果
-  new_apple(){
-    let index = Math.floor(Math.random() * this.game.length+1)
-    while(this.game[index] != 0 ){
-      index = Math.floor(Math.random() * this.game.length+1)
+  //创建n个苹果
+  new_apple(num = 1){
+    for(let i = 0 ; i < num ; i++){
+      let index = Math.floor(Math.random() * this.game.length+1)
+      while(this.game[index] != 0 ){
+        index = Math.floor(Math.random() * this.game.length+1)
+      }
+      this.upgrade(index , 1)
     }
-    this.upgrade(index , 1)
+
   }
 
   new_snack(snack:Snack){
@@ -129,5 +132,14 @@ export class Game {
       }
     }while (!is_legal)
     return index
+  }
+
+
+  is_hit_something(snack:Snack){
+    let label = this.game[snack.new_head]
+    if(label != 0 && label > 9){
+      return true
+    }
+    return false
   }
 }

@@ -3,8 +3,12 @@ import { Snack } from "./Snack";
 import { HashSet, TreeSet } from "@kit.ArkTS";
 
 export class AISnack extends Snack{
+  AI_number : number = 1
 
-
+  constructor(length:number , facing? :number ,index = 10,tail = 0,AI_number = 1) {
+    super(length,facing,index,tail)
+    this.AI_number = AI_number
+  }
   get_facing(){
     switch (this.index){
       case 20:{
@@ -36,12 +40,4 @@ export class AISnack extends Snack{
       default :{this.facing = 1}
     }
   }
-  // ai_constructor(type :number) :number[]{
-  //   switch (type){
-  //     case 0 :{
-  //       let facing =Math.floor(Math.random()*4)
-  //
-  //     }
-  //   }
-  // }
 }
