@@ -17,6 +17,11 @@ export struct  Block {
     }else {
       type = Math.floor(this.status / 10) *10
     }
+    if(type == 0){
+      return $r("app.color.deep_background")
+    }
+
+
     switch (type){
       case 0 :{
         return $r("app.color.deep_background")
@@ -40,24 +45,45 @@ export struct  Block {
   }
 
   pic(){
-    if(this.status > 9 && this.status < 14){
-      switch (this.status%10){
-        case 0:{
-          return $rawfile('right.png')
+    if(this.status > 9 ){
+      if(this.status<20){
+        switch (this.status%10){
+          case 0:{
+            return $rawfile('right.png')
+          }
+          case 1:{
+            return $rawfile('up.png')
+          }
+          case 2:{
+            return $rawfile('left.png')
+          }
+          case 3:{
+            return $rawfile('down.png')
+          }
+          default :{
+            return null
+          }
         }
-        case 1:{
-          return $rawfile('up.png')
-        }
-        case 2:{
-          return $rawfile('left.png')
-        }
-        case 3:{
-          return $rawfile('down.png')
-        }
-        default :{
-          return null
+      }else {
+        switch (this.status%10){
+          case 0:{
+            return $rawfile('ai_rightandleft.png')
+          }
+          case 1:{
+            return $rawfile('ai_upanddown.png')
+          }
+          case 2:{
+            return $rawfile('ai_rightandleft.png')
+          }
+          case 3:{
+            return $rawfile('ai_upanddown.png')
+          }
+          default :{
+            return null
+          }
         }
       }
+
     }else {
       return null
     }

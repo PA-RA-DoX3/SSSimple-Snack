@@ -29,10 +29,22 @@ export class Game {
         }
         //回传参数
         key_num.push(snack.index)
-      } else if (this.detect_eat_apple(snack.new_head)) {
-        //如果有蛇吃到苹果
-        //在棋盘上生成一个新的
-        this.new_apple()
+      } else if (this.detect_eat_apple(snack.new_head) || snack.init_length>snack.body.length) {
+        //如果有蛇吃到苹果 或者还在生成
+
+        if(this.detect_eat_apple(snack.new_head)){
+          this.apple_num--
+          this.new_apple()
+        }
+        // if(snack.init_length>snack.body.length){
+        //   snack.init_length++
+        // }else{
+        //   //在棋盘上生成一个新的
+        //   this.new_apple()
+        // }
+
+
+
         //将长度增加一格   即直接将蛇头加入其身体但是不去掉尾部
         //将之前的头设定为身体
         //将该格设置为编号 + 类型码(头方向为0-3,身体为9)
@@ -92,7 +104,6 @@ export class Game {
   //判断是否吃到apple
   detect_eat_apple(new_head :number) {
     if (this.game[new_head] == 1) {
-      this.apple_num--
       return true
     }
     return false
@@ -121,9 +132,10 @@ export class Game {
           this.upgrade(range[index], type)
         }
       }
+      this.apple_num += num;
     }
     //在棋盘中增加苹果数量
-    this.apple_num += num;
+
 
   }
 
@@ -141,8 +153,7 @@ export class Game {
       this.upgrade(item, 0)
     })
     //再根据蛇的长度生成 1? 个 的苹果
-    //数量为小数
-    this.new_apple(snack.body.length / 5, snack.body)
+    this.new_apple(Math.floor(snack.body.length / 5) +1 , snack.body)
   }
 
   //以蛇为保护对象可能生成一个合法空位置

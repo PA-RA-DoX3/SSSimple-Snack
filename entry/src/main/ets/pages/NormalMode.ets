@@ -3,6 +3,7 @@ import {Apples} from '../common/utils/Apples'
 import { Snack } from '../common/utils/Snack';
 import { Game } from '../common/utils/Game';
 import { AISnack } from '../common/utils/AISnack';
+import { it } from '@ohos/hypium';
 
 @Entry
 @Component
@@ -20,11 +21,7 @@ struct NormalMode {
   //主时间
   current_time :number = 0
   //AI蛇
-  snack1 :AISnack = new AISnack(3)
-  snack2 :AISnack = new AISnack(3)
-  //ai蛇是否已经生成
-  exist_snack1:boolean = false
-  exist_snack2:boolean = false
+  ai_snack :AISnack[] = []
 
   aboutToAppear(): void {
     this.reset(true)
@@ -32,30 +29,21 @@ struct NormalMode {
     let main_clock = setInterval(() => {
       if(this.now_playing){
         //计时器增加
-        if(this.current_time < 400 ){
+        if(this.current_time < 1200 ){
           this.current_time += 100
         }else {
           this.current_time = 100
         }
-        //如果存在就移动，不存在就尝试刷新
-        if(this.exist_snack1){
-          if((this.current_time % this.snack1.refresh_time) == 0){
-            this.snack1.get_facing(this.normal_g)
-            this.refresh_snack(this.snack1)
-          }
-        }else {
+        if((this.current_time % 400) == 0){
           this.ai_snack_create()
         }
-
-        if(this.exist_snack2){
-          if((this.current_time % this.snack2.refresh_time) == 0){
-            this.snack2.get_facing(this.normal_g)
-            this.refresh_snack(this.snack2)
+        //刷新每一个存在的ai蛇
+        this.ai_snack.forEach((snack,index)=>{
+          if((this.current_time % snack.refresh_time) == 0){
+            snack.get_facing(this.normal_g)
+            this.refresh_snack(snack)
           }
-        }else {
-          this.ai_snack_create()
-        }
-
+        })
         //玩家刷新
         if((this.current_time % this.player.refresh_time) == 0){
           this.refresh_snack(this.player)
@@ -358,8 +346,7 @@ struct NormalMode {
       this.normal_g.game.push(0) //将所有格子重置为空
     }
     //重置AI蛇状态
-    this.exist_snack1 = false
-    this.exist_snack2 = false
+    this.ai_snack = []
     //重置分数 和 死亡状态
     this.length_score = 0
     this.dead = false
@@ -425,13 +412,12 @@ struct NormalMode {
       switch (key_num % 10) {
         case 0: {
           if(snack_arr[index].index == 10 ){
+            //注释掉后无敌
             // this.dead = true
             // this.now_playing = false
           }else{
-            //然后清空身体
-            snack_arr[index].body = []
-            //然后更新所有Ai蛇状态
-            this.refresh_AI_status()
+            //然后删除这条ai蛇
+            this.ai_snack.splice((snack_arr[index].index / 10)-2 ,1)
           }
           break;
         }
@@ -456,33 +442,21 @@ struct NormalMode {
     return true
   }
   //判断是否生成AI蛇
-  ai_snack_create(){
-    if(!this.exist_snack1) {
-      //概率生成
-      if(Math.floor(Math.random()*10)>8){
-        let tail = this.normal_g.find_safe_space(this.player,1)
-        if(tail >-1){
-          this.snack1 = new AISnack(4,undefined,20,tail,1)
-          this.normal_g.new_snack(this.snack1)
-          this.exist_snack1 = true
-        }
-      }
-
-    }
-    if(!this.exist_snack2) {
-      //概率生成
-      if(Math.floor(Math.random()*10)>8){
-        let tail = this.normal_g.find_safe_space(this.player , 4)
-        if(tail > -1){
-          this.snack2 = new AISnack(4,undefined,30,tail,2)
-          this.normal_g.new_snack(this.snack2)
-          this.exist_snack2 = true
+  ai_snack_create() {
+    //百分之30生成
+    if (Math.floor(Math.random() * 10) > 6) {
+      //如果数量小于 x
+      if (this.ai_snack.length < 4) {
+        let tail = this.normal_g.find_safe_space(this.player, 1)
+        let type = Math.floor(Math.random() * 3) +1
+        if (tail > -1) {
+          this.ai_snack.push(new AISnack(undefined, this.ai_snack.length * 10 + 20, tail, type))
         }
       }
     }
   }
   //蛇加速
-  speed_up(snack :Snack){
+  speed_up(snack:Snack){
     snack.refresh_time /= 2
     let speed_up_interval = setInterval(()=>{
       snack.refresh_time *= 2
@@ -496,20 +470,6 @@ struct NormalMode {
       this.now_playing = true
     }else {
       this.speed_up(this.player)
-    }
-  }
-  //更新AI蛇状态(可优化)
-  refresh_AI_status(){
-    if(this.snack1.body.length == 0){
-      this.exist_snack1 = false
-    }else {
-      this.exist_snack1 =true
-    }
-
-    if(this.snack2.body.length == 0){
-      this.exist_snack2 = false
-    }else {
-      this.exist_snack2 =true
     }
   }
 

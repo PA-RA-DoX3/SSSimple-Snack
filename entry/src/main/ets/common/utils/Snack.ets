@@ -1,21 +1,22 @@
 export class Snack {
   body: number[] = []
   facing: number = 0
+  //是否生成完毕
+  init_length :number = 0
+
   new_head :number = 0
   //编号，默认为10，指定为玩家 ，后续编号由主游戏确定
   index : number = 1
   //刷新时间
   refresh_time :number = 400
   //长度，朝向 ，所属蛇的标签，尾巴的位置
-  constructor(length:number , facing? :number ,index = 10,tail = 0) {
-    for(let i = 0 ;i <length ; i++){
-      this.body.push(tail)
-      tail++
-    }
+  constructor(init_length:number , facing? :number ,index = 10,tail = 0) {
+    this.body.push(tail)
     if(facing == undefined) {
       facing = Math.floor(Math.random()*4)
     }
     this.index = index
+    this.init_length = init_length
   }
 
   //设置蛇头位置
@@ -59,7 +60,6 @@ export class Snack {
       this.new_head = this.get_head() + size
     }
   }
-
 
    detect_hit_self() {
     if (this.body.includes(this.new_head)) {
