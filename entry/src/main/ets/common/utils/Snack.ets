@@ -2,8 +2,8 @@ export class Snack {
   body: number[] = []
   facing: number = 0
   new_head :number = 0
-  //默认编号为11,也就是玩家
-  index : number = 10
+  //编号，默认为10，指定为玩家 ，后续编号由主游戏确定
+  index : number = 1
   //刷新时间
   refresh_time :number = 400
   //长度，朝向 ，所属蛇的标签，尾巴的位置

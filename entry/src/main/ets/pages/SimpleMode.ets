@@ -5,7 +5,7 @@ import { Snack } from '../common/utils/Snack';
 
 @Entry
 @Component
-export  struct main_game {
+struct main_game {
   @State board_size: number = 0;
   //棋盘
   @State simple_g: Game = new Game();

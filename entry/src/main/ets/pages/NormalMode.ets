@@ -37,24 +37,23 @@ struct NormalMode {
         }else {
           this.current_time = 100
         }
-        //刷新AI蛇
-        if(this.current_time % 400 == 0){
-          this.ai_snack_create()
-        }
-
-
+        //如果存在就移动，不存在就尝试刷新
         if(this.exist_snack1){
           if((this.current_time % this.snack1.refresh_time) == 0){
-            this.snack1.get_facing()
+            this.snack1.get_facing(this.normal_g)
             this.refresh_snack(this.snack1)
           }
+        }else {
+          this.ai_snack_create()
         }
 
         if(this.exist_snack2){
           if((this.current_time % this.snack2.refresh_time) == 0){
-            this.snack2.get_facing()
+            this.snack2.get_facing(this.normal_g)
             this.refresh_snack(this.snack2)
           }
+        }else {
+          this.ai_snack_create()
         }
 
         //玩家刷新
@@ -309,25 +308,33 @@ struct NormalMode {
     .gesture(
       PanGesture({direction : PanDirection.Right })
         .onActionEnd(()=>{
-          this.set_player_facing(0)
+          if(this.player.facing!= 2){
+            this.set_player_facing(0)
+          }
         })
     )
     .gesture(
       PanGesture({direction : PanDirection.Up })
         .onActionEnd(()=>{
-          this.set_player_facing(1)
+          if(this.player.facing != 3){
+            this.set_player_facing(1)
+          }
         })
     )
     .gesture(
       PanGesture({direction : PanDirection.Left })
         .onActionEnd(()=>{
-          this.set_player_facing(2)
+          if(this.player.facing != 0){
+            this.set_player_facing(2)
+          }
         })
     )
     .gesture(
       PanGesture({direction : PanDirection.Down })
         .onActionEnd(()=>{
-          this.set_player_facing(3)
+          if(this.player.facing != 1){
+            this.set_player_facing(3)
+          }
         })
     )
     .gesture(
@@ -339,13 +346,14 @@ struct NormalMode {
 
   }
 
+  //设置玩家facing
   set_player_facing(n :number) {
     this.player.facing = n
   }
   //重置棋盘
   reset(is_first = false) {
     //重置棋盘
-    this.normal_g.game = []
+    this.normal_g = new Game()
     for (let index = 0; index < 400; index++) {
       this.normal_g.game.push(0) //将所有格子重置为空
     }
@@ -406,58 +414,7 @@ struct NormalMode {
       return $r('app.string.button_text_start')
     }
   }
-  //刷新游戏（弃用）
-  refresh_game() {
-    //首先移动玩家的蛇
-    let snack_arr :Snack[] = [this.player]
-    this.player.move(20)
-    if(this.exist_snack1){
-      this.snack1.move(20)
-      snack_arr.push(this.snack1)
-    }
-    if(this.exist_snack2){
-      // snack2.move()
-      // snack_arr.push(snack2)
-    }
-    //执行棋盘的自动检测功能
-    //0游戏失败   1蛇正常行走  2蛇吃到苹果
-    //refresh里更新棋盘，外边更新蛇
-    this.normal_g.refresh(20,snack_arr).forEach((key_num,index)=>{
-      switch (key_num % 10) {
-        case 0: {
-          if(snack_arr[index].index == 10 ){
-            this.dead = true
-            this.now_playing = false
-          }else{
-            this.exist_snack1 =false
-            //先删除
-            this.normal_g.delete_snack(snack_arr[index])
-            //然后清空身体
-            this.snack1.body = []
-          }
-          break;
-        }
-        case 1: {
-          snack_arr[index].body.push(snack_arr[index].new_head)
-          snack_arr[index].body.shift()
-          break;
-        }
-        case 2: {
-          snack_arr[index].body.push(snack_arr[index].new_head)
-          if(snack_arr[index].index == 10 ){
-            this.length_score++
-          }
-
-          break;
-        }
-        default: {
-
-        }
-      }
-    })
-    return true
-  }
-  //某条蛇加速
+  //蛇刷新
   refresh_snack(snack:Snack) {
     //首先移动玩家的蛇
     let snack_arr :Snack[] = [snack]
@@ -468,15 +425,13 @@ struct NormalMode {
       switch (key_num % 10) {
         case 0: {
           if(snack_arr[index].index == 10 ){
-            this.dead = true
-            this.now_playing = false
+            // this.dead = true
+            // this.now_playing = false
           }else{
-
-            this.exist_snack1 =false
-            //先删除
-            this.normal_g.delete_snack(snack_arr[index])
             //然后清空身体
-            this.snack1.body = []
+            snack_arr[index].body = []
+            //然后更新所有Ai蛇状态
+            this.refresh_AI_status()
           }
           break;
         }
@@ -503,22 +458,26 @@ struct NormalMode {
   //判断是否生成AI蛇
   ai_snack_create(){
     if(!this.exist_snack1) {
-      //百分之40概率生成
-      if(Math.floor(Math.random()*10)>7){
-        let tail = this.normal_g.find_space(6)
-        this.snack1 = new AISnack(6,undefined,20,tail,1)
-        this.normal_g.new_snack(this.snack1)
-        this.exist_snack1 = true
+      //概率生成
+      if(Math.floor(Math.random()*10)>8){
+        let tail = this.normal_g.find_safe_space(this.player,1)
+        if(tail >-1){
+          this.snack1 = new AISnack(4,undefined,20,tail,1)
+          this.normal_g.new_snack(this.snack1)
+          this.exist_snack1 = true
+        }
       }
 
     }
     if(!this.exist_snack2) {
-      //百分之40概率生成
-      if(Math.floor(Math.random()*10)>7){
-        let tail = this.normal_g.find_space(6)
-        this.snack2 = new AISnack(6,undefined,20,tail,2)
-        this.normal_g.new_snack(this.snack2)
-        this.exist_snack2 = true
+      //概率生成
+      if(Math.floor(Math.random()*10)>8){
+        let tail = this.normal_g.find_safe_space(this.player , 4)
+        if(tail > -1){
+          this.snack2 = new AISnack(4,undefined,30,tail,2)
+          this.normal_g.new_snack(this.snack2)
+          this.exist_snack2 = true
+        }
       }
     }
   }
@@ -528,7 +487,7 @@ struct NormalMode {
     let speed_up_interval = setInterval(()=>{
       snack.refresh_time *= 2
       clearInterval(speed_up_interval)
-    }, 5000)
+    }, 2000)
   }
   //功能键函数
   key_button(){
@@ -537,6 +496,20 @@ struct NormalMode {
       this.now_playing = true
     }else {
       this.speed_up(this.player)
+    }
+  }
+  //更新AI蛇状态(可优化)
+  refresh_AI_status(){
+    if(this.snack1.body.length == 0){
+      this.exist_snack1 = false
+    }else {
+      this.exist_snack1 =true
+    }
+
+    if(this.snack2.body.length == 0){
+      this.exist_snack2 = false
+    }else {
+      this.exist_snack2 =true
     }
   }
 

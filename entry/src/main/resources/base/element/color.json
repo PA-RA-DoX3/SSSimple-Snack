@@ -25,6 +25,10 @@
       "value": "#90C36E"
     },
     {
+      "name": "AI_light_green",
+      "value": "#BDC384"
+    },
+    {
       "name": "accent",
       "value": "#334C42"
     }
