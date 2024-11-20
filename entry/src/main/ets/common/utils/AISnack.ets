@@ -14,14 +14,28 @@ export class AISnack extends Snack{
     let init_length :number = 3
     switch (AI_type){
       case 1: {
-        init_length = 4
+        init_length = 5
         break
       }
       case 2: {
-        init_length = 4
+        init_length = 2
         break
       }
       case 3: {
+        init_length = 4
+        break
+      }
+      case 4:{
+        //无限长
+        init_length = 399
+        break
+      }
+      //乌龟蛇
+      case 5 :{
+        init_length = 15
+        break
+      }
+      case 6 :{
         init_length = 3
         break
       }
@@ -29,7 +43,7 @@ export class AISnack extends Snack{
     super(init_length,facing,index,tail)
     this.AI_type = AI_type
   }
-  get_facing(current_game : Game){
+  get_facing(current_game : Game , player:Snack){
     //最开始有所有方向
     this.chance = [0,1,2,3]
     switch (this.AI_type){
@@ -39,22 +53,46 @@ export class AISnack extends Snack{
         this.random_choose()
         break;
       }
-      //类型2 会优先选择吃掉苹果
+      //类型1 普通蛇 会优先选择吃掉苹果
       case 2:{
         this.keep_alive()
         this.want_apple(current_game)
         this.random_choose()
         break;
       }
-      //类型3，全局搜索蛇速度稍快
+      //类型3，全局搜索蛇速度稍慢
       case 3:{
-        this.refresh_time = 300
-        this.keep_alive()
+        this.refresh_time = 500
+        this.keep_alive_plus(current_game)
         //获得target
         this.target_want_apple_plus(current_game)
         this.go_target()
         this.random_choose()
         break;
+      }
+      case 4:{
+        this.keep_alive_plus(current_game)
+        this.random_choose()
+        break
+      }
+      case 5:{
+        if(this.body.length < 15){
+          this.refresh_time = 150
+        }else {
+          this.refresh_time = 5000
+        }
+        this.keep_alive_plus(current_game)
+        this.random_choose()
+        break
+      }
+
+      case 6 :{
+        this.refresh_time = 350
+        this.keep_alive_plus(current_game)
+        this.target_kill_player(player)
+        this.go_target()
+        this.random_choose()
+        break
       }
       default :{
         this.facing = -1
@@ -62,7 +100,6 @@ export class AISnack extends Snack{
     }
 
   }
-
 
   keep_alive(){
     //不允许自杀
@@ -88,6 +125,34 @@ export class AISnack extends Snack{
       })
     }
   }
+
+
+  keep_alive_plus(current_game :Game){
+    //不允许自杀
+    if(this.facing >1){
+      this.chance.splice(this.facing-2,1)
+    }else {
+      this.chance.splice(this.facing+2,1)
+    }
+    //遍历所有剩余方向,如果会自然死亡则排除
+    //用wrong_facing记录错误下标
+    let wrong_facing :number[] = []
+    this.chance.forEach((temp_facing,index)=>{
+      this.move(20 , temp_facing)
+      if(Game.detect_hit_wall(this.new_head,temp_facing,20) || current_game.is_hit_something(this.new_head)){
+        //在前面添加以保障从大到小排列   保证删去时不会影响后面index值
+        wrong_facing.unshift(index)
+      }
+    })
+    //删去所有错误下标
+    if(wrong_facing.length!=0){
+      wrong_facing.forEach((wrong_facing)=>{
+        this.chance.splice(wrong_facing,1)
+      })
+    }
+  }
+
+
   want_apple(current_game : Game){
     let new_chance : number[] = []
     this.chance.forEach((temp_facing)=>{
@@ -123,7 +188,9 @@ export class AISnack extends Snack{
     this.target_loc =temp_target
 
   }
-
+  target_kill_player(player :Snack){
+    this.target_loc = player.new_head
+  }
   //对剩下的方向随机选择
   random_choose(){
     if (this.chance.length != 0){

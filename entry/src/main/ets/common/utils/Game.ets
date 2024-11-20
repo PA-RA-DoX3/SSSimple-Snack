@@ -22,7 +22,7 @@ export class Game {
     //定义一个返回的数组  初始化为空
     let key_num: number[] = []
     snack_arr.forEach((snack) => {
-      if (Game.detect_hit_wall(snack.new_head, snack.facing, game_size) || this.is_hit_something(snack)) {
+      if (Game.detect_hit_wall(snack.new_head, snack.facing, game_size) || this.is_hit_something(snack.new_head)) {
         //如果不是玩家则执行生成apple
         if (snack.index != 10) {
           this.snack_death(snack)
@@ -35,6 +35,8 @@ export class Game {
         if(this.detect_eat_apple(snack.new_head)){
           this.apple_num--
           this.new_apple()
+          //将苹果多余的分数增加到init_length上
+          snack.init_length = snack.body.length + this.game[snack.new_head] - 1
         }
         // if(snack.init_length>snack.body.length){
         //   snack.init_length++
@@ -48,6 +50,7 @@ export class Game {
         //将长度增加一格   即直接将蛇头加入其身体但是不去掉尾部
         //将之前的头设定为身体
         //将该格设置为编号 + 类型码(头方向为0-3,身体为9)
+
         this.game[snack.get_head()] = snack.index + 9
         this.game[snack.new_head] = snack.index + snack.facing
         //刷新
@@ -103,28 +106,57 @@ export class Game {
 
   //判断是否吃到apple
   detect_eat_apple(new_head :number) {
-    if (this.game[new_head] == 1) {
+    if (this.game[new_head] != 0 && this.game[new_head] < 10) {
       return true
     }
     return false
   }
 
-  //指定范围内创建n个分数为type的苹果(可优化？)
-  new_apple(num = 1, range?: number[], type = 1) {
+  //指定范围内创建分数为n的的苹果(可优化？)
+  new_apple(score = 1, range?: number[], type = 1) {
     //判断是否超过数量
     if(this.apple_num < 11){
-      //没有指定范围
-      if (range == undefined) {
-        for (let i = 0; i < num; i++) {
+      if(range == undefined){
+        //先生成5分的
+        for(let type = 5 ; score >= type ; score -=5, this.apple_num++){
           let index: number
           do {
             index = Math.floor(Math.random() * this.game.length)
           } while (this.game[index] != 0)
           this.upgrade(index, type)
         }
-      } else {
-        //如果指定范围  从范围中选择
-        for (let i = 0; i < num; i++) {
+
+        for(let type = 3 ; score >= type ; score -=3 , this.apple_num++){
+          let index: number
+          do {
+            index = Math.floor(Math.random() * this.game.length)
+          } while (this.game[index] != 0)
+          this.upgrade(index, type)
+        }
+
+        for(let type = 1 ; score >= type ; score -=1 , this.apple_num++){
+          let index: number
+          do {
+            index = Math.floor(Math.random() * this.game.length)
+          } while (this.game[index] != 0)
+          this.upgrade(index, type)
+        }
+      }else{
+        for (let type = 5; score >= type; score -= 5 , this.apple_num++) {
+          let index: number
+          do {
+            index = Math.floor(Math.random() * range.length)
+          } while (this.game[range[index]] != 0)
+          this.upgrade(range[index], type)
+        }
+        for (let type = 3; score >= type; score -= 3 , this.apple_num++) {
+          let index: number
+          do {
+            index = Math.floor(Math.random() * range.length)
+          } while (this.game[range[index]] != 0)
+          this.upgrade(range[index], type)
+        }
+        for (let type = 1; score >= type; score -= 1 , this.apple_num++) {
           let index: number
           do {
             index = Math.floor(Math.random() * range.length)
@@ -132,9 +164,35 @@ export class Game {
           this.upgrade(range[index], type)
         }
       }
-      this.apple_num += num;
     }
-    //在棋盘中增加苹果数量
+
+
+
+
+    // //判断是否超过数量
+    // if(this.apple_num < 11){
+    //   //没有指定范围
+    //   if (range == undefined) {
+    //     for (let i = 0; i < num; i++) {
+    //       let index: number
+    //       do {
+    //         index = Math.floor(Math.random() * this.game.length)
+    //       } while (this.game[index] != 0)
+    //       this.upgrade(index, type)
+    //     }
+    //   } else {
+    //     //如果指定范围  从范围中选择
+    //     for (let i = 0; i < num; i++) {
+    //       let index: number
+    //       do {
+    //         index = Math.floor(Math.random() * range.length)
+    //       } while (this.game[range[index]] != 0)
+    //       this.upgrade(range[index], type)
+    //     }
+    //   }
+    //   this.apple_num += num;
+    // }
+    // //在棋盘中增加苹果数量
 
 
   }
@@ -179,8 +237,8 @@ export class Game {
   }
 
 
-  is_hit_something(snack:Snack){
-    let label = this.game[snack.new_head]
+  is_hit_something(new_head :number){
+    let label = this.game[new_head]
     if(label != 0 && label > 9){
       return true
     }

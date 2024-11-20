@@ -3,7 +3,6 @@ import {Apples} from '../common/utils/Apples'
 import { Snack } from '../common/utils/Snack';
 import { Game } from '../common/utils/Game';
 import { AISnack } from '../common/utils/AISnack';
-import { it } from '@ohos/hypium';
 
 @Entry
 @Component
@@ -20,27 +19,37 @@ struct NormalMode {
 
   //主时间
   current_time :number = 0
+  //蛇生成cd
+  creat_cd = 0
   //AI蛇
   ai_snack :AISnack[] = []
+  //AI蛇序数
+  ai_index : number[]  = [20,30,40,50,60,70]
+
 
   aboutToAppear(): void {
     this.reset(true)
 
     let main_clock = setInterval(() => {
       if(this.now_playing){
+        //减少所有cd时间
+        if(this.creat_cd !=0){
+          this.creat_cd -=10
+        }
+
         //计时器增加
-        if(this.current_time < 1200 ){
-          this.current_time += 100
+        if(this.current_time < 1000000 ){
+          this.current_time += 10
         }else {
-          this.current_time = 100
+          this.current_time = 10
         }
         if((this.current_time % 400) == 0){
           this.ai_snack_create()
         }
         //刷新每一个存在的ai蛇
-        this.ai_snack.forEach((snack,index)=>{
+        this.ai_snack.forEach((snack)=>{
           if((this.current_time % snack.refresh_time) == 0){
-            snack.get_facing(this.normal_g)
+            snack.get_facing(this.normal_g ,this.player)
             this.refresh_snack(snack)
           }
         })
@@ -52,7 +61,7 @@ struct NormalMode {
 
 
 
-    },100); // Refresh Game
+    },10); // Refresh Game
   }
 
   build() {
@@ -87,7 +96,7 @@ struct NormalMode {
         Row(){
           Text(this.length_score.toString())
             .opacity(this.board_size == 0 ? 0 : 1)
-            .animation({ duration: 500, delay: 400, curve: Curve.ExtremeDeceleration })
+            .animation({ duration: 500, delay: 1400, curve: Curve.ExtremeDeceleration })
 
             .fontSize(this.board_size * 50)
             .fontWeight(FontWeight.Bold)
@@ -97,7 +106,7 @@ struct NormalMode {
 
           Text(this.get_facing_string())
             .opacity(this.board_size == 0 ? 0 : 1)
-            .animation({ duration: 500, delay: 450, curve: Curve.ExtremeDeceleration })
+            .animation({ duration: 500, delay: 1450, curve: Curve.ExtremeDeceleration })
 
             .fontSize(this.board_size * 50)
             .fontWeight(FontWeight.Bold)
@@ -229,7 +238,7 @@ struct NormalMode {
         }
         // Gamepad
         .opacity(this.board_size == 0 ? 0 : 1)
-        .animation({ duration: 500, delay: 500, curve: Curve.ExtremeDeceleration })
+        .animation({ duration: 500, delay: 1500, curve: Curve.ExtremeDeceleration })
 
         .width(this.board_size * 150)
         .height(this.board_size * 150)
@@ -269,7 +278,7 @@ struct NormalMode {
         }
         // Control
         .opacity(this.board_size == 0 ? 0 : 1)
-        .animation({ duration: 500, delay: 550, curve: Curve.ExtremeDeceleration })
+        .animation({ duration: 500, delay: 1550, curve: Curve.ExtremeDeceleration })
 
         .width(this.board_size * 150)
         .height(this.board_size * 150)
@@ -345,6 +354,8 @@ struct NormalMode {
     for (let index = 0; index < 400; index++) {
       this.normal_g.game.push(0) //将所有格子重置为空
     }
+    //重置ai蛇序数
+    this.ai_index = [20,30,40,50,60,70]
     //重置AI蛇状态
     this.ai_snack = []
     //重置分数 和 死亡状态
@@ -402,7 +413,7 @@ struct NormalMode {
     }
   }
   //蛇刷新
-  refresh_snack(snack:Snack) {
+  refresh_snack(snack :Snack) {
     //首先移动玩家的蛇
     let snack_arr :Snack[] = [snack]
     snack.move(20)
@@ -413,11 +424,19 @@ struct NormalMode {
         case 0: {
           if(snack_arr[index].index == 10 ){
             //注释掉后无敌
-            // this.dead = true
-            // this.now_playing = false
+            this.dead = true
+            this.now_playing = false
           }else{
             //然后删除这条ai蛇
-            this.ai_snack.splice((snack_arr[index].index / 10)-2 ,1)
+            this.ai_snack.splice( this.ai_snack.findIndex((snack )=>{
+              if(snack.index == snack_arr[index].index){
+                this.ai_index.push(snack.index)
+                return true
+              }
+              else return false
+            }),1)
+
+
           }
           break;
         }
@@ -446,11 +465,13 @@ struct NormalMode {
     //百分之30生成
     if (Math.floor(Math.random() * 10) > 6) {
       //如果数量小于 x
-      if (this.ai_snack.length < 4) {
+      if (this.ai_snack.length < 6 && this.creat_cd == 0) {
         let tail = this.normal_g.find_safe_space(this.player, 1)
-        let type = Math.floor(Math.random() * 3) +1
+        let type = Math.floor(Math.random() * 6) +1
         if (tail > -1) {
-          this.ai_snack.push(new AISnack(undefined, this.ai_snack.length * 10 + 20, tail, type))
+          this.ai_snack.push(new AISnack(undefined, this.ai_index[0], tail, type))
+          this.ai_index.shift()
+          this.creat_cd += 5000
         }
       }
     }

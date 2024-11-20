@@ -17,11 +17,6 @@ export struct  Block {
     }else {
       type = Math.floor(this.status / 10) *10
     }
-    if(type == 0){
-      return $r("app.color.deep_background")
-    }
-
-
     switch (type){
       case 0 :{
         return $r("app.color.deep_background")
@@ -29,62 +24,87 @@ export struct  Block {
       case 1 :{
         return $r("app.color.apple_normal")
       }
+      case 3 :{
+        return $r("app.color.apple_normal")
+      }
+      case 5 :{
+        return $r("app.color.apple_normal")
+      }
       case 10 :{
         return $r("app.color.player")
       }
       case 20:{
-        return $r("app.color.AI_light_blue")
+        return $r("app.color.AI_color0")
       }
       case 30:{
-        return $r("app.color.AI_light_green")
+        return $r("app.color.AI_color1")
+      }
+      case 40:{
+        return $r("app.color.AI_color2")
+      }
+      case 50:{
+        return $r("app.color.AI_color3")
+      }
+      case 60:{
+        return $r("app.color.AI_color4")
+      }
+      case 70:{
+        return $r("app.color.AI_color5")
+      }
+      case 80:{
+        return $r("app.color.AI_color6")
       }
       default :{
-        return $r("app.color.deep_background")
+        return $r("app.color.AI_color0")
       }
     }
   }
 
-  pic(){
-    if(this.status > 9 ){
-      if(this.status<20){
-        switch (this.status%10){
-          case 0:{
+  pic() {
+    if (this.status == 1) {
+      return $rawfile('small_apple.png')
+    } else if (this.status == 3) {
+      return $rawfile('middle_apple.png')
+    } else if (this.status > 9) {
+      if (this.status < 20) {
+        switch (this.status % 10) {
+          case 0: {
             return $rawfile('right.png')
           }
-          case 1:{
+          case 1: {
             return $rawfile('up.png')
           }
-          case 2:{
+          case 2: {
             return $rawfile('left.png')
           }
-          case 3:{
+          case 3: {
             return $rawfile('down.png')
           }
-          default :{
+          default: {
             return null
           }
         }
-      }else {
-        switch (this.status%10){
-          case 0:{
+      } else {
+        switch (this.status % 10) {
+          case 0: {
             return $rawfile('ai_rightandleft.png')
           }
-          case 1:{
+          case 1: {
             return $rawfile('ai_upanddown.png')
           }
-          case 2:{
+          case 2: {
             return $rawfile('ai_rightandleft.png')
           }
-          case 3:{
+          case 3: {
             return $rawfile('ai_upanddown.png')
           }
-          default :{
+          default: {
             return null
           }
         }
       }
 
-    }else {
+    } else {
       return null
     }
 
@@ -93,6 +113,7 @@ export struct  Block {
   build() {
     Row() {
       Image(this.pic())
+        .borderRadius(this.board_size * 4)
     }
     .width(this.zoom)
     .height(this.zoom)

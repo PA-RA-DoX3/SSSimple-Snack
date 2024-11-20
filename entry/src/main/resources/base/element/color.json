@@ -21,12 +21,32 @@
       "value": "#334C42"
     },
     {
-      "name": "AI_light_blue",
+      "name": "AI_color6",
       "value": "#90C36E"
     },
     {
-      "name": "AI_light_green",
+      "name": "AI_color0",
       "value": "#BDC384"
+    },
+    {
+      "name": "AI_color1",
+      "value": "#8A7225"
+    },
+    {
+      "name": "AI_color2",
+      "value": "#9BB1C5"
+    },
+    {
+      "name": "AI_color3",
+      "value": "#758BB8"
+    },
+    {
+      "name": "AI_color4",
+      "value": "#1E366D"
+    },
+    {
+      "name": "AI_color5",
+      "value": "#80B235"
     },
     {
       "name": "accent",
